@@ -20,47 +20,86 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
    assets/designs/<collection-id>/<concept-id>/black-01.jpg ... 10
    This build renders placeholder tiles only — no image files yet.
    --------------------------------------------------------------- */
+/* ===============================================================
+   DATA MODEL
+   ---------------------------------------------------------------
+   HOW TO ADD A NEW COLLECTION IN THE FUTURE:
+   1. Copy one of the "COMING SOON" blocks below
+   2. Fill in: id, code, name, glyph, set available: true
+   3. Fill in each concept's id, code, name
+   4. Create matching folders in Supabase Storage
+      (folder name must match the id exactly)
+   5. Upload images into black/ and white/ subfolders
+   =============================================================== */
 var COLLECTIONS = [
+
+  /* ============================================================
+     COLLECTION 1: NOSTALGIA & LEGACY CONNECTION
+     STATUS: ✅ LIVE
+     Supabase folder: nostalgia-legacy/
+     ============================================================ */
   {
-    id:"nostalgia", code:"NOS", name:"NOSTALGIA COLLECTION", glyph:"disk",
-    concepts:[
-      {id:"windows-95",     code:"W95", name:"Windows 95"},
-      {id:"vhs-memories",   code:"VHS", name:"VHS Memories"},
-      {id:"y2k-internet",   code:"Y2K", name:"Y2K Internet"},
-      {id:"retro-gaming",   code:"RGM", name:"Retro Gaming"},
-      {id:"internet-cafe",  code:"ICF", name:"Internet Caf\u00e9"}
+    id:        "nostalgia-legacy",
+    code:      "NLC",
+    name:      "NOSTALGIA & LEGACY CONNECTION",
+    glyph:     "disk",
+    available: true,
+    concepts: [
+      { id: "family-roots-legacy",  code: "FRL", name: "Family Roots & Legacy"  },
+      { id: "family-yearbook",      code: "FYB", name: "Family Yearbook"         },
+      { id: "retro-arcade-gaming",  code: "RAG", name: "Retro Arcade & Gaming"   },
+      { id: "vhs-memories",         code: "VHS", name: "VHS Memories"            },
+      { id: "windows-90-internet",  code: "W90", name: "Windows 90 Internet"     }
     ]
   },
+
+  /* ============================================================
+     COLLECTION 2 — IN DEVELOPMENT
+     HOW TO ACTIVATE:
+       - Change available: false → true
+       - Fill in the real id, code, name
+       - Fill in the 5 concepts below
+       - Create matching folders in Supabase
+     ============================================================ */
   {
-    id:"heritage", code:"HER", name:"HERITAGE COLLECTION", glyph:"tree",
-    concepts:[
-      {id:"family-tree",      code:"FTR", name:"Family Tree"},
-      {id:"vintage-postcard", code:"VPC", name:"Vintage Postcard"},
-      {id:"hometown-pride",   code:"HTP", name:"Hometown Pride"},
-      {id:"legacy-crest",     code:"LGC", name:"Legacy Crest"},
-      {id:"generations",      code:"GEN", name:"Generations"}
+    id:        "collection-2",
+    code:      "C02",
+    name:      "COMING SOON",
+    glyph:     "tree",
+    available: false,
+    concepts:  [
+      /* paste your 5 concepts here when ready */
     ]
   },
+
+  /* ============================================================
+     COLLECTION 3 — IN DEVELOPMENT
+     ============================================================ */
   {
-    id:"travel", code:"TRV", name:"TRAVEL COLLECTION", glyph:"plane",
-    concepts:[
-      {id:"boarding-pass",   code:"BPS", name:"Boarding Pass"},
-      {id:"passport",        code:"PSP", name:"Passport"},
-      {id:"adventure-club",  code:"ADV", name:"Adventure Club"},
-      {id:"road-trip",       code:"RDT", name:"Road Trip"},
-      {id:"cruise-line",     code:"CRL", name:"Cruise Line"}
+    id:        "collection-3",
+    code:      "C03",
+    name:      "COMING SOON",
+    glyph:     "plane",
+    available: false,
+    concepts:  [
+      /* paste your 5 concepts here when ready */
     ]
   },
+
+  /* ============================================================
+     COLLECTION 4 — IN DEVELOPMENT
+     ============================================================ */
   {
-    id:"team-family", code:"TFM", name:"TEAM FAMILY COLLECTION", glyph:"trophy",
-    concepts:[
-      {id:"family-athletics",      code:"FAT", name:"Family Athletics"},
-      {id:"collegiate",            code:"COL", name:"Collegiate"},
-      {id:"all-star-family",       code:"ASF", name:"All-Star Family"},
-      {id:"championship-reunion",  code:"CHR", name:"Championship Reunion"},
-      {id:"hall-of-fame",          code:"HOF", name:"Hall of Fame"}
+    id:        "collection-4",
+    code:      "C04",
+    name:      "COMING SOON",
+    glyph:     "trophy",
+    available: false,
+    concepts:  [
+      /* paste your 5 concepts here when ready */
     ]
   }
+
 ];
 
 /* 10x10 pixel-art bitmaps for collection glyph badges */
@@ -84,6 +123,28 @@ var GLYPHS = {
 };
 
 var TSHIRT_PATH = "M38,8 Q50,20 62,8 L85,22 L78,35 L72,92 Q50,98 28,92 L22,35 L15,22 Z";
+
+/* ---------------------------------------------------------------
+   SUPABASE STORAGE — fetch real design images by folder
+   Path structure: designs/{collectionId}/{conceptId}/{color}/
+   --------------------------------------------------------------- */
+async function fetchDesignFiles(collectionId, conceptId, color) {
+  var folderPath = collectionId + "/" + conceptId + "/" + color;
+
+  var result = await supabase.storage.from("designs").list(folderPath, {
+    limit: 100,
+    sortBy: { column: "name", order: "asc" }
+  });
+
+  if (result.error || !result.data) return [];
+
+  /* Filter out Supabase's hidden placeholder files */
+  return result.data.filter(function(file){
+    return file.name !== ".emptyFolderPlaceholder"
+        && file.name !== ".gitkeep"
+        && file.id  !== null;
+  });
+}
 
 function glyphSVG(name){
   var rows = GLYPHS[name];
@@ -151,18 +212,27 @@ function renderDesktop(){
   COLLECTIONS.forEach(function(col){
     var btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "folder-item";
+    btn.className = "folder-item" + (col.available ? "" : " folder-unavailable");
+
+    /* Show SOON badge on unavailable collections */
+    var badge = col.available ? "" : '<span class="coming-soon-badge">SOON</span>';
+
     btn.innerHTML =
       '<span class="folder-shape"><span class="folder-glyph">'+glyphSVG(col.glyph)+'</span></span>'+
-      '<span class="folder-label">'+col.name+'</span>';
-    btn.addEventListener("click", function(){ openCollection(col.id); });
+      '<span class="folder-label">'+col.name+badge+'</span>';
+
+    if(col.available){
+      btn.addEventListener("click", function(){ openCollection(col.id); });
+    } else {
+      btn.addEventListener("click", function(){ showToast("COMING SOON \u2014 STAY TUNED!"); });
+    }
     grid.appendChild(btn);
   });
 }
 
 function renderCollectionView(){
   var col = getCollection(state.collectionId);
-  if(!col){ state.view="desktop"; return renderDesktop(); }
+  if(!col || !col.available){ state.view="desktop"; return renderDesktop(); }
 
   var panel = document.createElement("div");
   panel.className = "win-panel";
@@ -243,23 +313,60 @@ function renderLibraryView(){
   setTab(state.tab || "white");
 }
 
-function renderTileGrid(col, con, tab){
+async function renderTileGrid(col, con, tab){
   var grid = qs("tile-grid");
+
+  /* Show loading message while images fetch */
+  grid.innerHTML =
+    '<p style="padding:16px;font-size:16px;color:var(--bevel-darkest);">'+
+    '\u23F3 Loading designs...</p>';
+
+  var files = await fetchDesignFiles(col.id, con.id, tab);
+
   grid.innerHTML = "";
-  for(var i=1;i<=10;i++){
-    var num = (i<10 ? "0"+i : ""+i);
-    var code = col.code+"-"+con.code+"-"+(tab==="white"?"W":"B")+num;
+
+  /* No images uploaded yet for this tab */
+  if(files.length === 0){
+    grid.innerHTML =
+      '<p style="padding:16px;font-size:16px;color:var(--bevel-darkest);">'+
+      'No designs uploaded yet for '+(tab==="white"?"WHITE":"BLACK")+' shirts.</p>';
+    var sc = qs("lib-status-count");
+    if(sc) sc.textContent = "0 designs";
+    return;
+  }
+
+  /* Build a tile for each image file found */
+  files.forEach(function(file, index){
+    var filePath = col.id + "/" + con.id + "/" + tab + "/" + file.name;
+    var imageUrl = supabase.storage.from("designs").getPublicUrl(filePath).data.publicUrl;
+    var displayName = file.name.replace(/\.[^/.]+$/, ""); /* strip file extension */
+
     var tile = document.createElement("button");
     tile.type = "button";
     tile.className = "design-tile";
     tile.innerHTML =
-      '<span class="swatch is-'+tab+'">'+tshirtSVG()+'</span>'+
-      '<span class="tile-label"><span class="num">'+(tab==="white"?"W":"B")+num+'</span><span class="clr">'+(tab==="white"?"White":"Black")+'</span></span>';
-    tile.addEventListener("click", function(c, t){
-      return function(ev){ lastTileTrigger = ev.currentTarget; openLightbox(c, t); };
-    }(code, tab));
+      '<span class="swatch is-'+tab+'">'+
+        '<img src="'+imageUrl+'" alt="'+displayName+'" class="design-img" '+
+          'onerror="this.style.display=\'none\'">'+
+        '<span class="design-placeholder">'+tshirtSVG()+'</span>'+
+      '</span>'+
+      '<span class="tile-label">'+
+        '<span class="num">'+(index+1)+'</span>'+
+        '<span class="clr">'+displayName+'</span>'+
+      '</span>';
+
+    tile.addEventListener("click", function(url, name, t){
+      return function(ev){
+        lastTileTrigger = ev.currentTarget;
+        openLightboxWithImage(url, name, t);
+      };
+    }(imageUrl, displayName, tab));
+
     grid.appendChild(tile);
-  }
+  });
+
+  var statusCount = qs("lib-status-count");
+  if(statusCount) statusCount.textContent = files.length+" designs loaded";
 }
 
 /* ---------------------------------------------------------------
@@ -400,6 +507,48 @@ function openLightbox(code, tab) {
       // Reset button state
       saveBtn.textContent = "SAVE TO DB";
       saveBtn.disabled = false;
+    };
+  }
+}
+
+/* Open lightbox using a real image URL instead of a design code */
+function openLightboxWithImage(imageUrl, displayName, tab){
+  qs("lightbox-code").textContent  = displayName;
+  qs("lightbox-title").textContent = displayName;
+  qs("lightbox-art").innerHTML =
+    '<img src="'+imageUrl+'" alt="'+displayName+'" class="lightbox-img" '+
+      'onerror="this.style.display=\'none\'">'+
+    '<span class="design-placeholder" '+
+      'style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">'+
+      tshirtSVG()+
+    '</span>';
+
+  $lightboxModal.classList.remove("hidden");
+  qs("lightbox-close").focus();
+
+  /* Copy button — copies the design name */
+  qs("lightbox-copy").onclick = function(){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(displayName)
+        .then(function(){ showToast("COPIED: "+displayName); })
+        .catch(function(){ showToast("NAME: "+displayName); });
+    } else {
+      showToast("NAME: "+displayName);
+    }
+  };
+
+  /* Save button — saves to Supabase table */
+  var saveBtn = qs("lightbox-save");
+  if(saveBtn){
+    saveBtn.onclick = async function(){
+      saveBtn.textContent = "SAVING...";
+      saveBtn.disabled    = true;
+      const { error } = await supabase
+        .from("saved_designs")
+        .insert([{ design_code: displayName }]);
+      showToast(error ? "ERROR SAVING TO DB" : "SAVED TO SUPABASE!");
+      saveBtn.textContent = "SAVE TO DB";
+      saveBtn.disabled    = false;
     };
   }
 }
