@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ALCHEM APPAREL — Master Design Library</title>
+<meta name="description" content="ALCHEM APPAREL master design library — 4 collections, 20 concepts, 400 customizable family reunion shirt designs.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230A2342'/%3E%3Ctext x='8' y='12' font-family='monospace' font-size='11' fill='%23FF8C42' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.ALCHEM.css">
+</head>
+<body>
+
+<!-- ============================================================
+     BOOT SCREEN — Y2K terminal boot sequence, signature moment
+     ============================================================ -->
+<div id="boot-screen" role="status" aria-live="polite">
+  <div class="boot-inner">
+    <div class="boot-logo">ALCHEM<span>APPAREL</span></div>
+    <pre id="boot-log" class="boot-log"></pre>
+    <div class="boot-bar-track" aria-hidden="true">
+      <div id="boot-bar-fill" class="boot-bar-fill"></div>
+    </div>
+    <div id="boot-percent" class="boot-percent">0%</div>
+    <button id="boot-skip" class="boot-skip" type="button">SKIP &gt;&gt;</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div id="app" class="app hidden">
+
+  <!-- Brand bar -->
+  <header class="brand-bar">
+    <button class="brand-lockup" id="brand-home-btn" type="button" aria-label="Return to desktop home">
+      <span class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 12 12" class="pixel-svg"><g id="icon-mark"></g></svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">ALCHEM&nbsp;APPAREL</span>
+        <span class="brand-tagline">FAMILY REUNION SHIRT CUSTOMIZER</span>
+      </span>
+    </button>
+    <div class="visitor-counter" title="Lifetime visitors">
+      <span class="counter-label">VISITORS</span>
+      <span id="visitor-count" class="counter-digits">000000</span>
+    </div>
+  </header>
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb-bar" id="breadcrumb-bar" aria-label="Breadcrumb"></nav>
+
+  <!-- Main stage: desktop / collection window / library window render here -->
+  <main id="stage" class="stage"></main>
+
+  <!-- Taskbar -->
+  <footer class="taskbar">
+    <button id="taskbar-back" class="start-btn" type="button" disabled>
+      <span class="start-icon" aria-hidden="true">◀</span> BACK
+    </button>
+    <div class="taskbar-current" id="taskbar-current">DESKTOP</div>
+    <div class="taskbar-clock" id="taskbar-clock">12:00 PM</div>
+  </footer>
+</div>
+
+<!-- ============================================================
+     DISCLAIMER MODAL (Windows-95 warning dialog)
+     ============================================================ -->
+<div id="disclaimer-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title">
+  <div class="win-dialog">
+    <div class="title-bar">
+      <span id="disclaimer-title" class="title-bar-text">IMPORTANT NOTICE</span>
+      <button class="win-ctrl close-ctrl" id="disclaimer-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="dialog-icon warning-icon" aria-hidden="true">!</div>
+      <div class="dialog-text">
+        <p>The designs in this library are <strong>creative concepts</strong>, not final artwork.</p>
+        <p>Every detail can be made yours: swap the color palette, change the wording, add names or dates, or embed your own photo. Nothing here is locked until you say so.</p>
+      </div>
+    </div>
+    <label class="dialog-checkbox">
+      <input type="checkbox" id="dont-show-again">
+      <span class="checkbox-box" aria-hidden="true"></span>
+      Don't show this again
+    </label>
+    <div class="dialog-actions">
+      <button id="disclaimer-continue" class="btn-cta" type="button">CONTINUE TO LIBRARY</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LIGHTBOX MODAL (single design preview)
+     ============================================================ -->
+<div id="lightbox-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+  <div class="win-dialog lightbox-dialog">
+    <div class="title-bar">
+      <span id="lightbox-title" class="title-bar-text">DESIGN PREVIEW</span>
+      <button class="win-ctrl close-ctrl" id="lightbox-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="lightbox-meta">
+  <div id="lightbox-code" class="design-code">NOS-W95-W01</div>
+  <p class="lightbox-note">Concept design — colors, text, and graphics are fully customizable for your reunion.</p>
+  
+  <button id="lightbox-copy" class="btn-cta btn-small" type="button">COPY DESIGN CODE</button>
+  <button id="lightbox-save" class="btn-cta btn-small" type="button" style="margin-left: 6px;">SAVE TO DB</button>
+</div>
+    <div class="lightbox-body">
+      <div id="lightbox-art" class="lightbox-art"></div>
+      <div class="lightbox-meta">
+        <div id="lightbox-code" class="design-code">NOS-W95-W01</div>
+        <p class="lightbox-note">Concept design — colors, text, and graphics are fully customizable for your reunion.</p>
+        <button id="lightbox-copy" class="btn-cta btn-small" type="button">COPY DESIGN CODE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.ALCHEM.js"></script>
+</body>
+</html>
