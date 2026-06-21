@@ -38,18 +38,19 @@ var COLLECTIONS = [
      STATUS: ✅ LIVE
      Supabase folder: nostalgia-legacy/
      ============================================================ */
-  {
+{
     id:        "nostalgia-legacy",
+    folderId:  "NOSTALGIA & LEGACY COLLECTION", /* ⚠️ Change this to your EXACT Supabase folder name */
     code:      "NLC",
     name:      "NOSTALGIA & LEGACY COLLECTION",
     glyph:     "disk",
     available: true,
     concepts: [
-      { id: "family-roots-legacy",  code: "FRL", name: "Family Roots & Legacy"  },
-      { id: "family-yearbook",      code: "FYB", name: "Family Yearbook"         },
-      { id: "retro-arcade-gaming",  code: "RAG", name: "Retro Arcade & Gaming"   },
-      { id: "vhs-memories",         code: "VHS", name: "VHS Memories"            },
-      { id: "windows-90-internet",  code: "W90", name: "Windows 90 Internet"     }
+      { id: "family-roots-legacy", folderId: "FAMILY ROOTS & LEGACY",  code: "FRL", name: "Family Roots & Legacy" },
+      { id: "family-yearbook",     folderId: "FAMILY YEARBOOK",         code: "FYB", name: "Family Yearbook"        },
+      { id: "retro-arcade-gaming", folderId: "RETRO ARCADE & GAMING",   code: "RAG", name: "Retro Arcade & Gaming"  },
+      { id: "vhs-memories",        folderId: "VHS MEMORIES",            code: "VHS", name: "VHS Memories"           },
+      { id: "windows-90-internet", folderId: "WINDOWS 90 INTERNET",     code: "W90", name: "Windows 90 Internet"    }
     ]
   },
 
@@ -130,21 +131,49 @@ var TSHIRT_PATH = "M38,8 Q50,20 62,8 L85,22 L78,35 L72,92 Q50,98 28,92 L22,35 L1
    --------------------------------------------------------------- */
 async function fetchDesignFiles(collectionFolderId, conceptFolderId, color) {
   var colorFolder = color === "white" ? "WHITE" : "BLACK";
-  var folderPath = collectionFolderId + "/" + conceptFolderId + "/" + colorFolder;
 
-  var result = await supabase.storage.from("designs").list(folderPath, {
+  /* First, try looking in the BLACK/WHITE subfolder */
+  var subFolderPath = collectionFolderId + "/" + conceptFolderId + "/" + colorFolder;
+  var subResult = await supabase.storage.from("designs").list(subFolderPath, {
     limit: 100,
     sortBy: { column: "name", order: "asc" }
   });
 
-  if (result.error || !result.data) return [];
+  var subFiles = [];
+  if (!subResult.error && subResult.data) {
+    subFiles = subResult.data.filter(function(file){
+      return file.name !== ".emptyFolderPlaceholder"
+          && file.name !== ".gitkeep"
+          && file.id  !== null;
+    });
+  }
 
-  /* Filter out Supabase's hidden placeholder files */
-  return result.data.filter(function(file){
-    return file.name !== ".emptyFolderPlaceholder"
-        && file.name !== ".gitkeep"
-        && file.id  !== null;
+  /* If subfolder has files, use them */
+  if (subFiles.length > 0) {
+    return subFiles.map(function(file){
+      return { name: file.name, path: subFolderPath + "/" + file.name };
+    });
+  }
+
+  /* Otherwise, fall back to flat folder — filter by BLACK/WHITE in filename */
+  var flatPath = collectionFolderId + "/" + conceptFolderId;
+  var flatResult = await supabase.storage.from("designs").list(flatPath, {
+    limit: 100,
+    sortBy: { column: "name", order: "asc" }
   });
+
+  if (flatResult.error || !flatResult.data) return [];
+
+  return flatResult.data
+    .filter(function(file){
+      return file.name !== ".emptyFolderPlaceholder"
+          && file.name !== ".gitkeep"
+          && file.id  !== null
+          && file.name.toUpperCase().indexOf(colorFolder) !== -1; /* match BLACK or WHITE in filename */
+    })
+    .map(function(file){
+      return { name: file.name, path: flatPath + "/" + file.name };
+    });
 }
 
 function glyphSVG(name){
@@ -339,8 +368,7 @@ async function renderTileGrid(col, con, tab){
   /* Build a tile for each image file found */
   files.forEach(function(file, index){
     var colorFolder = tab === "white" ? "WHITE" : "BLACK";
-    var filePath = col.folderId + "/" + con.folderId + "/" + colorFolder + "/" + file.name;
-    var imageUrl = supabase.storage.from("designs").getPublicUrl(filePath).data.publicUrl;
+    var imageUrl = supabase.storage.from("designs").getPublicUrl(file.path).data.publicUrl;
     var displayName = file.name.replace(/\.[^/.]+$/, ""); /* strip file extension */
 
     var tile = document.createElement("button");
