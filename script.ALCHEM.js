@@ -404,6 +404,11 @@ function openLightbox(code, tab) {
   }
 }
 
+function hideLightbox() {
+  $lightboxModal.classList.add("hidden");
+  if (lastTileTrigger) { lastTileTrigger.focus(); lastTileTrigger = null; }
+}
+
 /* ---------------------------------------------------------------
    8. TOAST
    --------------------------------------------------------------- */
