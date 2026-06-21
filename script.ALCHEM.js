@@ -41,7 +41,7 @@ var COLLECTIONS = [
   {
     id:        "nostalgia-legacy",
     code:      "NLC",
-    name:      "NOSTALGIA & LEGACY CONNECTION",
+    name:      "NOSTALGIA & LEGACY COLLECTION",
     glyph:     "disk",
     available: true,
     concepts: [
@@ -128,8 +128,9 @@ var TSHIRT_PATH = "M38,8 Q50,20 62,8 L85,22 L78,35 L72,92 Q50,98 28,92 L22,35 L1
    SUPABASE STORAGE — fetch real design images by folder
    Path structure: designs/{collectionId}/{conceptId}/{color}/
    --------------------------------------------------------------- */
-async function fetchDesignFiles(collectionId, conceptId, color) {
-  var folderPath = collectionId + "/" + conceptId + "/" + color;
+async function fetchDesignFiles(collectionFolderId, conceptFolderId, color) {
+  var colorFolder = color === "white" ? "WHITE" : "BLACK";
+  var folderPath = collectionFolderId + "/" + conceptFolderId + "/" + colorFolder;
 
   var result = await supabase.storage.from("designs").list(folderPath, {
     limit: 100,
@@ -321,7 +322,7 @@ async function renderTileGrid(col, con, tab){
     '<p style="padding:16px;font-size:16px;color:var(--bevel-darkest);">'+
     '\u23F3 Loading designs...</p>';
 
-  var files = await fetchDesignFiles(col.id, con.id, tab);
+  var files = await fetchDesignFiles(col.folderId, con.folderId, tab);
 
   grid.innerHTML = "";
 
@@ -337,7 +338,8 @@ async function renderTileGrid(col, con, tab){
 
   /* Build a tile for each image file found */
   files.forEach(function(file, index){
-    var filePath = col.id + "/" + con.id + "/" + tab + "/" + file.name;
+    var colorFolder = tab === "white" ? "WHITE" : "BLACK";
+    var filePath = col.folderId + "/" + con.folderId + "/" + colorFolder + "/" + file.name;
     var imageUrl = supabase.storage.from("designs").getPublicUrl(filePath).data.publicUrl;
     var displayName = file.name.replace(/\.[^/.]+$/, ""); /* strip file extension */
 
