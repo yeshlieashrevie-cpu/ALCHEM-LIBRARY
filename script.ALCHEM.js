@@ -40,7 +40,7 @@ var COLLECTIONS = [
      ============================================================ */
 {
     id:        "nostalgia-legacy",
-    folderId:  "NOSTALGIA & LEGACY COLLECTION", /* ⚠️ Change this to your EXACT Supabase folder name */
+    folderId:  "NOSTALGIA & LEGACY COLLECTIONS", /* ⚠️ Change this to your EXACT Supabase folder name */
     code:      "NLC",
     name:      "NOSTALGIA & LEGACY COLLECTION",
     glyph:     "disk",
@@ -139,7 +139,7 @@ async function fetchDesignFiles(collectionFolderId, conceptFolderId, color) {
   console.log("=== ALCHEM DEBUG ===");
   console.log("Looking in path:", subFolderPath);
 
-  var subResult = await supabase.storage.from("designs").list(subFolderPath, {
+  var subResult = await supabase.storage.from("Designs").list(subFolderPath, {
     limit: 100,
     sortBy: { column: "name", order: "asc" }
   });
