@@ -379,7 +379,10 @@ async function renderTileGrid(col, con, tab){
   /* Build a tile for each image file found */
   files.forEach(function(file, index){
     var colorFolder = tab === "white" ? "WHITE" : "BLACK";
-    var imageUrl = supabase.storage.from("Designs").getPublicUrl(file.path).data.publicUrl;
+var encodedPath = file.path.split("/").map(function(segment){
+  return encodeURIComponent(segment);
+}).join("/");
+var imageUrl = supabase.storage.from("Designs").getPublicUrl(encodedPath).data.publicUrl;
 console.log("Image URL:", imageUrl);
     var displayName = file.name.replace(/\.[^/.]+$/, ""); /* strip file extension */
 
