@@ -144,10 +144,11 @@ async function fetchDesignFiles(collectionFolderId, conceptFolderId, color) {
     sortBy: { column: "name", order: "asc" }
   });
 
-  /* 🔍 DEBUG — shows what Supabase returned */
-  console.log("Supabase result:", subResult);
-  console.log("Error (if any):", subResult.error);
-  console.log("Files found:", subResult.data);
+/* 🔍 DEBUG — shows full raw response */
+  console.log("Supabase raw result:", JSON.stringify(subResult));
+  console.log("Error:", subResult.error);
+  console.log("Raw data:", subResult.data);
+  console.log("Files after filter:", subFiles);
 
   var subFiles = [];
   if (!subResult.error && subResult.data) {
