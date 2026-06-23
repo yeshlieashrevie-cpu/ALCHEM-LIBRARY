@@ -382,7 +382,7 @@ async function renderTileGrid(col, con, tab){
 var encodedPath = file.path.split("/").map(function(segment){
   return encodeURIComponent(segment);
 }).join("/");
-var imageUrl = supabase.storage.from("Designs").getPublicUrl(encodedPath).data.publicUrl;
+var imageUrl = supabaseUrl + "/storage/v1/object/public/Designs/" + encodedPath;
 console.log("Image URL:", imageUrl);
     var displayName = file.name.replace(/\.[^/.]+$/, ""); /* strip file extension */
 
