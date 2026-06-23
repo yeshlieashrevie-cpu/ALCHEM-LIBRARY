@@ -134,10 +134,20 @@ async function fetchDesignFiles(collectionFolderId, conceptFolderId, color) {
 
   /* First, try looking in the BLACK/WHITE subfolder */
   var subFolderPath = collectionFolderId + "/" + conceptFolderId + "/" + colorFolder;
+
+  /* 🔍 DEBUG — shows exactly what path is being searched */
+  console.log("=== ALCHEM DEBUG ===");
+  console.log("Looking in path:", subFolderPath);
+
   var subResult = await supabase.storage.from("designs").list(subFolderPath, {
     limit: 100,
     sortBy: { column: "name", order: "asc" }
   });
+
+  /* 🔍 DEBUG — shows what Supabase returned */
+  console.log("Supabase result:", subResult);
+  console.log("Error (if any):", subResult.error);
+  console.log("Files found:", subResult.data);
 
   var subFiles = [];
   if (!subResult.error && subResult.data) {
